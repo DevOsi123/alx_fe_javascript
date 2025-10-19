@@ -225,8 +225,8 @@ function mergeQuotes(serverQuotes) {
   }
 }
 
-// Full sync routine: fetch server quotes, merge, then post local quotes
-async function fullSync() {
+// Full sync routine renamed to syncQuotes
+async function syncQuotes() {
   const serverQuotes = await fetchQuotesFromServer();
   mergeQuotes(serverQuotes);
   await syncToServer();
@@ -234,15 +234,15 @@ async function fullSync() {
 
 // Periodic sync every 30 seconds
 function startPeriodicSync() {
-  fullSync(); // initial sync
-  setInterval(fullSync, 30000);
+  syncQuotes(); // initial sync
+  setInterval(syncQuotes, 30000);
 }
 
 // Manual sync button
 const manualSyncBtn = document.createElement('button');
 manualSyncBtn.textContent = 'Sync Now with Server';
 manualSyncBtn.style.marginLeft = '10px';
-manualSyncBtn.onclick = fullSync;
+manualSyncBtn.onclick = syncQuotes;
 document.querySelector('h1').after(manualSyncBtn);
 
 // ---------------- On load ----------------
