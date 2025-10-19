@@ -164,10 +164,9 @@ async function fetchQuotesFromServer() {
     if (!response.ok) throw new Error('Network response was not ok');
     const serverData = await response.json();
 
-    // Map server posts to quotes
     const serverQuotes = serverData.map(post => ({
       text: post.title,
-      category: 'server-sync'  // arbitrary category
+      category: 'server-sync'
     }));
 
     return serverQuotes;
@@ -180,7 +179,6 @@ async function fetchQuotesFromServer() {
 // Post local quotes to server (simulate saving changes)
 async function syncToServer() {
   try {
-    // Note: JSONPlaceholder ignores posted data but responds with what you send
     const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
       method: 'POST',
       headers: {
@@ -193,7 +191,7 @@ async function syncToServer() {
 
     const data = await response.json();
     console.log("Synced to server:", data);
-    showNotification("Local quotes synced to server.");
+    showNotification("Quotes synced with server!");
     return true;
   } catch (err) {
     console.error("Failed to sync to server:", err);
@@ -209,7 +207,6 @@ function mergeQuotes(serverQuotes) {
   let updated = false;
 
   serverQuotes.forEach(sq => {
-    // Check if quote exists locally by exact match
     const exists = quotes.some(lq => lq.text === sq.text && lq.category === sq.category);
     if (!exists) {
       quotes.push(sq);
