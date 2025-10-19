@@ -3,10 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dynamic Quote Generator</title>
+  <title>Dynamic Quote Generator – Sync Enabled</title>
+  <style>
+    /* Simple styling for notifications */
+    #syncMessage {
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #888;
+      background-color: #f0f0f0;
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <h1>Dynamic Quote Generator</h1>
+
+  <div id="syncMessage"></div>
 
   <div>
     <label for="categoryFilter">Filter by category:</label>
