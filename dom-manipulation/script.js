@@ -8,7 +8,7 @@ const quoteDisplay = document.getElementById("quoteDisplay");
 const categoryFilter = document.getElementById("categoryFilter");
 const newQuoteButton = document.getElementById("newQuote");
 
-// Create notification banner
+// Notification banner setup
 const notificationBanner = document.createElement('div');
 notificationBanner.style.position = 'fixed';
 notificationBanner.style.top = '0';
@@ -20,6 +20,7 @@ notificationBanner.style.textAlign = 'center';
 notificationBanner.style.padding = '10px';
 notificationBanner.style.fontWeight = 'bold';
 notificationBanner.style.display = 'none';
+notificationBanner.style.zIndex = '1000';
 document.body.appendChild(notificationBanner);
 
 function showNotification(message) {
@@ -154,21 +155,19 @@ function exportToJsonFile() {
   URL.revokeObjectURL(url);
 }
 
-// -------------- New Code: Server Sync Simulation ----------------
+// -------------- Server Sync Simulation ----------------
 
-// Simulate fetching quotes from a "server"
-// Here we use JSONPlaceholder's /posts endpoint just for demo (it doesn't actually hold quotes),
-// so we simulate by mapping posts to quotes (fake).
+// Fetch quotes from "server" (mock API)
 async function fetchQuotesFromServer() {
   try {
     const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5');
     if (!response.ok) throw new Error('Network response was not ok');
     const serverData = await response.json();
 
-    // Convert server posts to quote objects for demo purposes
+    // Map server posts to quotes
     const serverQuotes = serverData.map(post => ({
       text: post.title,
-      category: 'server-sync'  // arbitrary category to distinguish server data
+      category: 'server-sync'  // arbitrary category
     }));
 
     return serverQuotes;
@@ -178,14 +177,39 @@ async function fetchQuotesFromServer() {
   }
 }
 
-// Merge server quotes into local quotes, with server data taking precedence.
-// We check for duplicates by exact text & category match.
+// Post local quotes to server (simulate saving changes)
+async function syncToServer() {
+  try {
+    // Note: JSONPlaceholder ignores posted data but responds with what you send
+    const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(quotes)
+    });
+
+    if (!response.ok) throw new Error('Failed to sync to server');
+
+    const data = await response.json();
+    console.log("Synced to server:", data);
+    showNotification("Local quotes synced to server.");
+    return true;
+  } catch (err) {
+    console.error("Failed to sync to server:", err);
+    showNotification("Failed to sync to server.");
+    return false;
+  }
+}
+
+// Merge server quotes into local, server data takes precedence
 function mergeQuotes(serverQuotes) {
   if (!serverQuotes) return;
 
   let updated = false;
+
   serverQuotes.forEach(sq => {
-    // Check if server quote already exists locally
+    // Check if quote exists locally by exact match
     const exists = quotes.some(lq => lq.text === sq.text && lq.category === sq.category);
     if (!exists) {
       quotes.push(sq);
@@ -201,20 +225,24 @@ function mergeQuotes(serverQuotes) {
   }
 }
 
-// Periodic sync function, runs every 30 seconds
-async function periodicSync() {
+// Full sync routine: fetch server quotes, merge, then post local quotes
+async function fullSync() {
   const serverQuotes = await fetchQuotesFromServer();
   mergeQuotes(serverQuotes);
+  await syncToServer();
 }
 
-// Manual sync button (optional UI)
+// Periodic sync every 30 seconds
+function startPeriodicSync() {
+  fullSync(); // initial sync
+  setInterval(fullSync, 30000);
+}
+
+// Manual sync button
 const manualSyncBtn = document.createElement('button');
 manualSyncBtn.textContent = 'Sync Now with Server';
 manualSyncBtn.style.marginLeft = '10px';
-manualSyncBtn.onclick = async () => {
-  const serverQuotes = await fetchQuotesFromServer();
-  mergeQuotes(serverQuotes);
-};
+manualSyncBtn.onclick = fullSync;
 document.querySelector('h1').after(manualSyncBtn);
 
 // ---------------- On load ----------------
@@ -230,9 +258,7 @@ window.onload = () => {
     showRandomQuote();
   }
 
-  // Start periodic sync every 30 seconds
-  periodicSync();
-  setInterval(periodicSync, 30000);
+  startPeriodicSync();
 };
 
 newQuoteButton.addEventListener("click", showRandomQuote);
