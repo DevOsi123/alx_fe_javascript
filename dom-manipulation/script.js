@@ -1,75 +1,82 @@
-// Initial set of quotes
+// Initial list of quotes
 let quotes = [
   { text: "Life is what happens when you're busy making other plans.", category: "life" },
   { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "motivation" },
   { text: "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.", category: "inspiration" }
 ];
 
-// DOM elements
+// Get DOM elements
 const quoteDisplay = document.getElementById('quoteDisplay');
 const categorySelect = document.getElementById('categorySelect');
 const newQuoteButton = document.getElementById('newQuote');
 
-// Display a random quote
+// Show a random quote from the selected category
 function showRandomQuote() {
   const selectedCategory = categorySelect.value;
-  
-  let filteredQuotes = selectedCategory === 'all'
+
+  // Filter quotes by category
+  const filteredQuotes = selectedCategory === 'all'
     ? quotes
-    : quotes.filter(q => q.category.toLowerCase() === selectedCategory.toLowerCase());
+    : quotes.filter(quote => quote.category.toLowerCase() === selectedCategory.toLowerCase());
 
   if (filteredQuotes.length === 0) {
-    quoteDisplay.textContent = "No quotes found for this category.";
+    quoteDisplay.innerHTML = "<p>No quotes found for this category.</p>";
     return;
   }
 
   const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
-  quoteDisplay.textContent = `"${filteredQuotes[randomIndex].text}" — ${filteredQuotes[randomIndex].category}`;
+  const quote = filteredQuotes[randomIndex];
+
+  quoteDisplay.innerHTML = `<p>"${quote.text}" — <em>${quote.category}</em></p>`;
 }
 
 // Add a new quote
 function addQuote() {
-  const quoteText = document.getElementById('newQuoteText').value.trim();
-  const quoteCategory = document.getElementById('newQuoteCategory').value.trim();
+  const quoteTextInput = document.getElementById('newQuoteText');
+  const quoteCategoryInput = document.getElementById('newQuoteCategory');
+
+  const quoteText = quoteTextInput.value.trim();
+  const quoteCategory = quoteCategoryInput.value.trim().toLowerCase();
 
   if (quoteText === '' || quoteCategory === '') {
-    alert('Please fill in both fields.');
+    alert("Please fill in both fields.");
     return;
   }
 
-  const newQuote = {
-    text: quoteText,
-    category: quoteCategory.toLowerCase()
-  };
+  // Add quote to array
+  quotes.push({ text: quoteText, category: quoteCategory });
 
-  quotes.push(newQuote);
+  // Add new category to dropdown if needed
   addCategoryToDropdown(quoteCategory);
-  document.getElementById('newQuoteText').value = '';
-  document.getElementById('newQuoteCategory').value = '';
+
+  // Clear input fields
+  quoteTextInput.value = '';
+  quoteCategoryInput.value = '';
+
   alert("Quote added successfully!");
 }
 
-// Add new category to the dropdown if it doesn't exist
+// Add category to the dropdown if it doesn't already exist
 function addCategoryToDropdown(category) {
-  const categoryLower = category.toLowerCase();
   const options = Array.from(categorySelect.options).map(opt => opt.value.toLowerCase());
-  
-  if (!options.includes(categoryLower)) {
-    const newOption = document.createElement('option');
-    newOption.value = category;
-    newOption.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-    categorySelect.appendChild(newOption);
+
+  if (!options.includes(category.toLowerCase())) {
+    categorySelect.innerHTML += `<option value="${category}">${capitalize(category)}</option>`;
   }
 }
 
-// Event Listeners
-newQuoteButton.addEventListener('click', showRandomQuote);
+// Capitalize first letter
+function capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
 
-// Populate initial categories
+// Populate dropdown on load
 window.onload = () => {
   const uniqueCategories = [...new Set(quotes.map(q => q.category.toLowerCase()))];
-
-  uniqueCategories.forEach(category => {
-    addCategoryToDropdown(category);
+  uniqueCategories.forEach(cat => {
+    addCategoryToDropdown(cat);
   });
 };
+
+// Event listener for quote button
+newQuoteButton.addEventListener('click', showRandomQuote);
